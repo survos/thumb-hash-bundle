@@ -83,6 +83,7 @@ class ThumbHashService
      * @param string $content The binary data of the image to be processed.
      * @return array An array containing the width, height, and pixel data of the image.
      * @throws \ImagickPixelIteratorException
+     * @throws \ImagickException
      */
     static public function extract_size_and_pixels_with_imagick_pixel_iterator($content): array
     {
@@ -93,6 +94,10 @@ class ThumbHashService
         // Get the width and height of the image.
         $width = $image->getImageWidth();
         $height = $image->getImageHeight();
+        if ($width > 100 || $height > 100) {
+            throw new \LogicException("Hash fails on images larger than 100x100px");
+        }
+
 
         // Create a new ImagickPixelIterator to iterate through the pixels of the image.
         $pixelIterator = $image->getPixelIterator();
