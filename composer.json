@@ -1,30 +1,32 @@
 {
-  "name": "survos/thumb-hash-bundle",
-  "type": "symfony-bundle",
-  "description": "Symfony bundle for srwiez/thumbhash PHP library",
-  "keywords": ["symfony-ux", "symfony"],
-
-  "license": "MIT",
-  "require": {
-    "php": "^8.3",
-    "symfony/config": "^7.3",
-    "symfony/dependency-injection": "^7.3",
-    "symfony/http-kernel": "^7.3",
-    "twig/twig": "^3.4",
-    "ext-imagick": "*",
-    "ext-gd": "*"
-  },
-  "autoload": {
-    "psr-4": {
-      "Survos\\ThumbHashBundle\\": "src/"
+    "name": "survos/thumb-hash-bundle",
+    "description": "Symfony bundle for srwiez/thumbhash PHP library",
+    "keywords": [
+        "symfony-ux",
+        "symfony"
+    ],
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "require": {
+        "php": "^8.4",
+        "symfony/config": "^7.3",
+        "symfony/dependency-injection": "^7.3",
+        "symfony/http-kernel": "^7.3",
+        "twig/twig": "^3.4",
+        "ext-imagick": "*",
+        "ext-gd": "*"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.0",
+        "symfony/browser-kit": "^7.3",
+        "symfony/framework-bundle": "^7.3",
+        "symfony/phpunit-bridge": "^7.3",
+        "symfony/twig-bundle": "^7.3",
+        "symfony/var-dumper": "^7.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Survos\\ThumbHashBundle\\": "src/"
+        }
     }
-  },
-  "require-dev": {
-    "phpstan/phpstan": "^2.1",
-    "symfony/browser-kit": "^7.3",
-    "symfony/framework-bundle": "^7.3",
-    "symfony/phpunit-bridge": "^7.3",
-    "symfony/twig-bundle": "^7.3",
-    "symfony/var-dumper": "^7.3"
-  }
 }

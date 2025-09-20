@@ -85,7 +85,7 @@ class ThumbHashService
      * @throws \ImagickPixelIteratorException
      * @throws \ImagickException
      */
-    static public function extract_size_and_pixels_with_imagick_pixel_iterator($content, int $maxWidth=100, int $maxHeight=100): array
+    static public function extract_size_and_pixels_with_imagick_pixel_iterator($content, int $maxWidth=192, int $maxHeight=192): array
     {
         // @todo: inject max
         // Create a new Imagick object and read the image from the binary data provided.
