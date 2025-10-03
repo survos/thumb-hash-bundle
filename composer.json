@@ -1,6 +1,6 @@
 {
     "name": "survos/thumb-hash-bundle",
-    "description": "Symfony bundle for srwiez/thumbhash PHP library",
+    "description": "Symfony bundle based on the srwiez/thumbhash PHP library",
     "keywords": [
         "symfony-ux",
         "symfony"
