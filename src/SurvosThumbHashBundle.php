@@ -1,16 +1,17 @@
 <?php
+
+declare(strict_types=1);
+
 /** generated from /home/tac/g/sites/survos/vendor/survos/maker-bundle/templates/skeleton/bundle/src/Bundle.tpl.php */
 
 namespace Survos\ThumbHashBundle;
 
-use Survos\ThumbHashBundle\Service\BlurService;
 use Survos\ThumbHashBundle\Service\ThumbHashService;
 use Survos\ThumbHashBundle\Twig\TwigExtension;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
-
 
 class SurvosThumbHashBundle extends AbstractBundle
 {
@@ -32,7 +33,6 @@ class SurvosThumbHashBundle extends AbstractBundle
         $definition->setArgument('$height', $config['height']);
         $definition->setArgument('$foregroundColor', $config['foregroundColor']);
         */
-
     }
 
     public function configure(DefinitionConfigurator $definition): void
@@ -48,5 +48,4 @@ class SurvosThumbHashBundle extends AbstractBundle
 //            ->integerNode('min_sunshine')->defaultValue(3)->end()
             ->end();
     }
-
 }

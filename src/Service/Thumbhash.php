@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Survos\ThumbHashBundle\Service;
 
 class Thumbhash
@@ -7,13 +9,13 @@ class Thumbhash
     /**
      * Encodes an RGBA image to a ThumbHash. RGB should not be premultiplied by A.
      *
-     * @param  int  $w  The width of the input image. Must be ≤100px.
-     * @param  int  $h  The height of the input image. Must be ≤100px.
-     * @param  array  $rgba  The pixels in the input image, row-by-row. Must have w*h*4 elements.
+     * @param int   $w    The width of the input image. Must be ≤100px.
+     * @param int   $h    The height of the input image. Must be ≤100px.
+     * @param array $rgba The pixels in the input image, row-by-row. Must have w*h*4 elements.
+     *
      * @returns array The ThumbHash as an array.
      */
-
-    public static function RGBAToHash($w, $h, $rgba, int $maxWidth=192, int $maxHeight=192  )
+    public static function RGBAToHash($w, $h, $rgba, int $maxWidth = 192, int $maxHeight = 192)
     {
         // Encoding an image larger than 100x100 is slow with no benefit
         if ($w > $maxWidth || $h > $maxHeight) {
@@ -67,7 +69,7 @@ class Thumbhash
         list($l_dc, $l_ac, $l_scale) = static::encodeChannel($l, max(3, $lx), max(3, $ly), $w, $h);
         list($p_dc, $p_ac, $p_scale) = static::encodeChannel($p, 3, 3, $w, $h);
         list($q_dc, $q_ac, $q_scale) = static::encodeChannel($q, 3, 3, $w, $h);
-        list($a_dc, $a_ac, $a_scale) = $hasAlpha ? static::encodeChannel($a, 5, 5, $w, $h) : [0,0,0];
+        list($a_dc, $a_ac, $a_scale) = $hasAlpha ? static::encodeChannel($a, 5, 5, $w, $h) : [0, 0, 0];
 
         $isLandscape = $w > $h;
         $header24 = round(63 * $l_dc) | (round(31.5 + 31.5 * $p_dc) << 6) | (round(31.5 + 31.5 * $q_dc) << 12) | (round(31 * $l_scale) << 18) | ($hasAlpha << 23);
@@ -106,14 +108,14 @@ class Thumbhash
         $scale = 0;
         $fx = [];
 
-        for ($cy = 0; $cy < $ny; $cy++) {
-            for ($cx = 0; $cx * $ny < $nx * ($ny - $cy); $cx++) {
+        for ($cy = 0; $cy < $ny; ++$cy) {
+            for ($cx = 0; $cx * $ny < $nx * ($ny - $cy); ++$cx) {
                 $f = 0;
-                for ($x = 0; $x < $w; $x++) {
+                for ($x = 0; $x < $w; ++$x) {
                     $fx[$x] = cos(pi() / $w * $cx * ($x + 0.5));
                 }
-                for ($y = 0; $y < $h; $y++) {
-                    for ($x = 0, $fy = cos(pi() / $h * $cy * ($y + 0.5)); $x < $w; $x++) {
+                for ($y = 0; $y < $h; ++$y) {
+                    for ($x = 0, $fy = cos(pi() / $h * $cy * ($y + 0.5)); $x < $w; ++$x) {
                         $f += $channel[$x + $y * $w] * $fx[$x] * $fy;
                     }
                 }
@@ -127,7 +129,7 @@ class Thumbhash
             }
         }
         if ($scale) {
-            for ($i = 0; $i < count($ac); $i++) {
+            for ($i = 0; $i < count($ac); ++$i) {
                 $ac[$i] = 0.5 + 0.5 / $scale * $ac[$i];
             }
         }
@@ -137,19 +139,20 @@ class Thumbhash
 
     public static function convertHashToString(array $hash): string
     {
-        return rtrim(base64_encode(implode(array_map("chr", $hash))), '=');
+        return rtrim(base64_encode(implode(array_map('chr', $hash))), '=');
     }
 
     public static function convertStringToHash(string $str): array
     {
-        return array_map("ord", str_split(base64_decode($str . "=")));
+        return array_map('ord', str_split(base64_decode($str.'=')));
     }
 
     /**
      * Decodes a ThumbHash to an RGBA image. RGB is not premultiplied by A.
      *
-     * @param  array  $hash  The bytes of the ThumbHash.
-     * @return array The width, height, and pixels of the rendered placeholder image.
+     * @param array $hash the bytes of the ThumbHash
+     *
+     * @return array the width, height, and pixels of the rendered placeholder image
      */
     public static function hashToRGBA(array $hash): array
     {
@@ -164,8 +167,8 @@ class Thumbhash
         $p_scale = (($header16 >> 3) & 63) / 63;
         $q_scale = (($header16 >> 9) & 63) / 63;
         $isLandscape = $header16 >> 15;
-        $lx = max(3, ($isLandscape ? $hasAlpha ? 5 : 7 : $header16 & 7));
-        $ly = max(3, ($isLandscape ? $header16 & 7 : ($hasAlpha ? 5 : 7)));
+        $lx = max(3, $isLandscape ? $hasAlpha ? 5 : 7 : $header16 & 7);
+        $ly = max(3, $isLandscape ? $header16 & 7 : ($hasAlpha ? 5 : 7));
         $a_dc = $hasAlpha ? ($hash[5] & 15) / 15 : 1;
         $a_scale = ($hash[5] >> 4) / 15;
 
@@ -174,9 +177,9 @@ class Thumbhash
         $ac_index = 0;
         $decodeChannel = function ($nx, $ny, $scale) use (&$hash, &$ac_start, &$ac_index) {
             $ac = [];
-            for ($cy = 0; $cy < $ny; $cy++) {
-                for ($cx = $cy ? 0 : 1; $cx * $ny < $nx * ($ny - $cy); $cx++) {
-                    $ac[] = ((((int)$hash[$ac_start + ($ac_index >> 1)] >> (($ac_index++ & 1) << 2)) & 15) / 7.5 - 1) * $scale;
+            for ($cy = 0; $cy < $ny; ++$cy) {
+                for ($cx = $cy ? 0 : 1; $cx * $ny < $nx * ($ny - $cy); ++$cx) {
+                    $ac[] = ((((int) $hash[$ac_start + ($ac_index >> 1)] >> (($ac_index++ & 1) << 2)) & 15) / 7.5 - 1) * $scale;
                 }
             }
 
@@ -194,7 +197,7 @@ class Thumbhash
         $fx = [];
         $fy = [];
 
-        for ($y = 0, $i = 0; $y < $h; $y++) {
+        for ($y = 0, $i = 0; $y < $h; ++$y) {
             for ($x = 0; $x < $w; $x++, $i += 4) {
                 $l = $l_dc;
                 $p = $p_dc;
@@ -202,22 +205,22 @@ class Thumbhash
                 $a = $a_dc;
 
                 // Precompute the coefficients
-                for ($cx = 0, $n = max($lx, $hasAlpha ? 5 : 3); $cx < $n; $cx++) {
+                for ($cx = 0, $n = max($lx, $hasAlpha ? 5 : 3); $cx < $n; ++$cx) {
                     $fx[$cx] = cos(M_PI / $w * ($x + 0.5) * $cx);
                 }
-                for ($cy = 0, $n = max($ly, $hasAlpha ? 5 : 3); $cy < $n; $cy++) {
+                for ($cy = 0, $n = max($ly, $hasAlpha ? 5 : 3); $cy < $n; ++$cy) {
                     $fy[$cy] = cos(M_PI / $h * ($y + 0.5) * $cy);
                 }
 
                 // Decode L
-                for ($cy = 0, $j = 0; $cy < $ly; $cy++) {
+                for ($cy = 0, $j = 0; $cy < $ly; ++$cy) {
                     for ($cx = $cy ? 0 : 1, $fy2 = $fy[$cy] * 2; $cx * $ly < $lx * ($ly - $cy); $cx++, $j++) {
                         $l += $l_ac[$j] * $fx[$cx] * $fy2;
                     }
                 }
 
                 // Decode P and Q
-                for ($cy = 0, $j = 0; $cy < 3; $cy++) {
+                for ($cy = 0, $j = 0; $cy < 3; ++$cy) {
                     for ($cx = $cy ? 0 : 1, $fy2 = $fy[$cy] * 2; $cx < 3 - $cy; $cx++, $j++) {
                         $f = $fx[$cx] * $fy2;
                         $p += $p_ac[$j] * $f;
@@ -227,7 +230,7 @@ class Thumbhash
 
                 // Decode A
                 if ($hasAlpha) {
-                    for ($cy = 0, $j = 0; $cy < 5; $cy++) {
+                    for ($cy = 0, $j = 0; $cy < 5; ++$cy) {
                         for ($cx = $cy ? 0 : 1, $fy2 = $fy[$cy] * 2; $cx < 5 - $cy; $cx++, $j++) {
                             $a += $a_ac[$j] * $fx[$cx] * $fy2;
                         }
@@ -248,14 +251,14 @@ class Thumbhash
         return compact('w', 'h', 'rgba');
     }
 
-
     /**
      * Extracts the average color from a ThumbHash. RGB is not premultiplied by A.
      *
-     * @param  array  $hash  The bytes of the ThumbHash.
+     * @param array $hash the bytes of the ThumbHash
+     *
      * @return array The RGBA values for the average color. Each value ranges from 0 to 1.
      */
-    function toAverageRGBA(array $hash): array
+    public function toAverageRGBA(array $hash): array
     {
         $header = $hash[0] | ($hash[1] << 8) | ($hash[2] << 16);
         $l = ($header & 63) / 63;
@@ -271,15 +274,15 @@ class Thumbhash
             'r' => max(0, min(1, $r)),
             'g' => max(0, min(1, $g)),
             'b' => max(0, min(1, $b)),
-            'a' => $a
+            'a' => $a,
         ];
     }
-
 
     /**
      * Extracts the approximate aspect ratio of the original image.
      *
-     * @param  array  $hash  The bytes of the ThumbHash.
+     * @param array $hash the bytes of the ThumbHash
+     *
      * @return float The approximate aspect ratio (i.e. width / height).
      */
     public static function toApproximateAspectRatio(array $hash)
@@ -298,9 +301,10 @@ class Thumbhash
      * A. This is optimized for speed and simplicity and does not optimize for size
      * at all. This doesn't do any compression (all values are stored uncompressed).
      *
-     * @param $w Int The width of the input image. Must be ≤100px.
-     * @param $h Int The height of the input image. Must be ≤100px.
+     * @param $w    Int The width of the input image. Must be ≤100px.
+     * @param $h    Int The height of the input image. Must be ≤100px.
      * @param $rgba String The pixels in the input image, row-by-row. Must have w*h*4 elements.
+     *
      * @returns String A data URL containing a PNG for the input image.
      */
     public static function rgbaToDataURL(int $w, int $h, $rgba)
@@ -311,12 +315,12 @@ class Thumbhash
             137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0,
             $w >> 8, $w & 255, 0, 0, $h >> 8, $h & 255, 8, 6, 0, 0, 0, 0, 0, 0, 0,
             ($idat >> 24) & 0xFF, ($idat >> 16) & 255, ($idat >> 8) & 255, $idat & 255,
-            73, 68, 65, 84, 120, 1
+            73, 68, 65, 84, 120, 1,
         ];
         $table = [
             0, 498536548, 997073096, 651767980, 1994146192, 1802195444, 1303535960,
             1342533948, -306674912, -267414716, -690576408, -882789492, -1687895376,
-            -2032938284, -1609899400, -1111625188
+            -2032938284, -1609899400, -1111625188,
         ];
         $a = 1;
         $b = 0;
@@ -325,9 +329,9 @@ class Thumbhash
         $end = $row - 1;
 
         for (; $y < $h; $y++, $end += $row - 1) {
-            array_push($bytes, ($y + 1 < $h ? 0 : 1), $row & 255, $row >> 8, ~$row & 255, ($row >> 8) ^ 255, 0);
+            array_push($bytes, $y + 1 < $h ? 0 : 1, $row & 255, $row >> 8, ~$row & 255, ($row >> 8) ^ 255, 0);
 
-            for ($b = ($b + $a) % 65521; $i < $end; $i++) {
+            for ($b = ($b + $a) % 65521; $i < $end; ++$i) {
                 $u = intval($rgba[$i]) & 255;
                 $bytes[] = $u;
                 $a = ($a + $u) % 65521;
@@ -347,7 +351,7 @@ class Thumbhash
             $end = $range[1];
             $c = ~0;
 
-            for ($i = $start; $i < $end; $i++) {
+            for ($i = $start; $i < $end; ++$i) {
                 $c ^= $bytes[$i];
                 $c = (($c >> 4) & 0xFFFFFFF) ^ $table[$c & 15];
                 $c = (($c >> 4) & 0xFFFFFFF) ^ $table[$c & 15];
@@ -360,16 +364,15 @@ class Thumbhash
             $bytes[$end++] = $c & 255;
         }
 
-
-        return 'data:image/png;base64,' . base64_encode(implode('', array_map('chr', $bytes)));
+        return 'data:image/png;base64,'.base64_encode(implode('', array_map('chr', $bytes)));
     }
-
 
     /**
      * Decodes a ThumbHash to a PNG data URL. This is a convenience function that
      * just calls "thumbHashToRGBA" followed by "rgbaToDataURL".
      *
-     * @param array $hash The bytes of the ThumbHash.
+     * @param array $hash the bytes of the ThumbHash
+     *
      * @returns array A data URL containing a PNG for the rendered ThumbHash.
      */
     public static function toDataURL(array $hash): string
@@ -378,5 +381,4 @@ class Thumbhash
 
         return static::rgbaToDataURL($image['w'], $image['h'], $image['rgba']);
     }
-
 }

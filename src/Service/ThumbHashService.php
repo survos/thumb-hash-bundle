@@ -1,37 +1,38 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Survos\ThumbHashBundle\Service;
+
 use Imagick;
 
 class ThumbHashService
 {
-
-
-
     /**
      * Extract image data using the GD extension.
      *
      * GD only provides 127-bit alpha data, so this up-scales it to 255 bits.
      *
-     * @param string $content The binary data of the image to be processed.
-     * @return array An array containing the width, height, and pixel data of the image.
+     * @param string $content the binary data of the image to be processed
+     *
+     * @return array an array containing the width, height, and pixel data of the image
+     *
      * @throws \Exception
      */
-    static public function extract_size_and_pixels_with_gd($content): array
+    public static function extract_size_and_pixels_with_gd($content): array
     {
         $image = imagecreatefromstring($content);
 
-        if ($image === false) {
-            throw new \Exception("Unable to read data, make sure that the appropriate " .
-                "image type support is enabled in GD.");
+        if (false === $image) {
+            throw new \Exception('Unable to read data, make sure that the appropriate image type support is enabled in GD.');
         }
 
         $width = imagesx($image);
         $height = imagesy($image);
 
         $pixels = [];
-        for ($y = 0; $y < $height; $y++) {
-            for ($x = 0; $x < $width; $x++) {
+        for ($y = 0; $y < $height; ++$y) {
+            for ($x = 0; $x < $width; ++$x) {
                 $color_index = imagecolorat($image, $x, $y);
                 $color = imagecolorsforindex($image, $color_index);
                 $alpha = 255 - ceil($color['alpha'] * (255 / 127)); // GD only supports 7-bit alpha channel
@@ -52,18 +53,17 @@ class ThumbHashService
      * @throws \ImagickException
      * @throws \ImagickPixelException
      */
-    static public function extract_size_and_pixels_with_imagick($content): array
+    public static function extract_size_and_pixels_with_imagick($content): array
     {
-        $image = new Imagick();
+        $image = new \Imagick();
         $image->readImageBlob($content);
 
         $width = $image->getImageWidth();
         $height = $image->getImageHeight();
 
         $pixels = [];
-        for ($y = 0; $y < $height; $y++) {
-            for ($x = 0; $x < $width; $x++) {
-
+        for ($y = 0; $y < $height; ++$y) {
+            for ($x = 0; $x < $width; ++$x) {
                 $pixel = $image->getImagePixelColor($x, $y);
                 $colors = $pixel->getColor(2);
                 $pixels[] = $colors['r'];
@@ -77,19 +77,21 @@ class ThumbHashService
     }
 
     /**
-     *
      * Extracts the size (width and height) and pixel data (RGBA) from an image using the Imagick library
      * and ImagickPixelIterator.
-     * @param string $content The binary data of the image to be processed.
-     * @return array An array containing the width, height, and pixel data of the image.
+     *
+     * @param string $content the binary data of the image to be processed
+     *
+     * @return array an array containing the width, height, and pixel data of the image
+     *
      * @throws \ImagickPixelIteratorException
      * @throws \ImagickException
      */
-    static public function extract_size_and_pixels_with_imagick_pixel_iterator($content, int $maxWidth=192, int $maxHeight=192): array
+    public static function extract_size_and_pixels_with_imagick_pixel_iterator($content, int $maxWidth = 192, int $maxHeight = 192): array
     {
         // @todo: inject max
         // Create a new Imagick object and read the image from the binary data provided.
-        $image = new Imagick();
+        $image = new \Imagick();
         $image->readImageBlob($content);
 
         // Get the width and height of the image.
@@ -98,7 +100,6 @@ class ThumbHashService
         if ($width > $maxWidth || $height > $maxHeight) {
             throw new \LogicException("Hash fails on images larger than $maxWidth x $maxHeight");
         }
-
 
         // Create a new ImagickPixelIterator to iterate through the pixels of the image.
         $pixelIterator = $image->getPixelIterator();
@@ -123,6 +124,4 @@ class ThumbHashService
         // Return an array containing the width, height, and pixel data.
         return [$width, $height, $pixels];
     }
-
-
 }
